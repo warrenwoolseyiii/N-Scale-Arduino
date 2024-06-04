@@ -198,19 +198,30 @@ void switchTrack(int currentStation, int currentDirection)
 
 void updateTrainThrottle()
 {
+  static int previousDirection = 0;
   TrainState.currentDirection = (digitalRead(DIRECTION) == HIGH) ? 1 : -1;
   TrainState.currentSpeed = (analogRead(THROTTLE_IN) * 100) / MAX_THROTTLE;
 
-  // Apply the throttle
-  if(TrainState.currentDirection == 1) {
-    // Forward
-    analogWrite(THROTTLE_OUT_1, (TrainState.currentSpeed * 255) / 100);
-    analogWrite(THROTTLE_OUT_2, 0);
-  } else {
-    // Reverse
+  // TODO: Right now this is very sensitive to the switch state - based on my wiring setup its probably a hardware issue
+  // If the direction has changed, set the speed to 0 first
+  if(previousDirection != TrainState.currentDirection) {
     analogWrite(THROTTLE_OUT_1, 0);
-    analogWrite(THROTTLE_OUT_2, (TrainState.currentSpeed * 255) / 100);
+    analogWrite(THROTTLE_OUT_2, 0);
   }
+  else {
+    // Apply the throttle
+    if(TrainState.currentDirection == 1) {
+      // Forward
+      analogWrite(THROTTLE_OUT_1, (TrainState.currentSpeed * 255) / 100);
+      analogWrite(THROTTLE_OUT_2, 0);
+    } else {
+      // Reverse
+      analogWrite(THROTTLE_OUT_1, 0);
+      analogWrite(THROTTLE_OUT_2, (TrainState.currentSpeed * 255) / 100);
+    }
+  }
+
+  previousDirection = TrainState.currentDirection;
 }
 
 void updateTrackToggle()
